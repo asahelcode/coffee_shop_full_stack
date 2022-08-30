@@ -83,8 +83,10 @@ def get_drinks_detail(payload):
 def post_drink(payload):
     data = request.get_json()
     if 'title' and 'recipe' not in data:
-        print('inside if under post')
-        abort(422)
+               raise AuthError({
+            'code': 'No content',
+            'description': 'missing json body')
+        }, 400)
 
     title = data['title']
     recipe_json = json.dumps(data['recipe'])
@@ -99,10 +101,13 @@ def post_drink(payload):
         return jsonify({
         'success': True,
         'drinks': [drink.long()]
-        })
+        }), 200
     
     except:
-        abort(422)
+        raise AuthError({
+            'code': 'Unprocessable entity',
+            'description': 'json body could not be processed')
+        }, 422)
 
 
 '''
@@ -117,14 +122,17 @@ def post_drink(payload):
         or appropriate status code indicating reason for failure
 '''
 
-@app.route('/drinks/<int:id>', methods=['PATCH'])
+@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
-def update_drink(payload, id):
+def update_drink(payload, drink_id):
     
-    drink = Drink.query.get(id)
+    drink = Drink.query.get(drink_id)
 
     if drink is None:
-        abort(404)
+        raise AuthError({
+            'code': 'No drink',
+            'description': 'Drink not found')
+        }, 404)
 
     data = request.get_json()
 
@@ -140,7 +148,7 @@ def update_drink(payload, id):
         return jsonify({
         'success': True,
         'drinks': [drink.long()]
-        })
+        }), 200
     except:
         abort(422)
 
@@ -219,11 +227,9 @@ def resource_not_found(error):
 '''
 @app.errorhandler(AuthError)
 def process_AuthError(error):
-    response = jsonify(error.error)
-    response.status_code = error.status_code
-
-    return response
-
-
-
+    return jsonify({
+         'success': False,
+        'error': error.status_code,
+        'description': error.error.get('description')
+    }), error.status_code
 
