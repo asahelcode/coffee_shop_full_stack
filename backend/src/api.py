@@ -35,14 +35,15 @@ def get_drinks():
     all_drinks = Drink.query.order_by(Drink.id).all()
 
     if len(all_drinks) == 0:
-        print('No drinks found - aborting 404')
-        abort(404)
+        raise AuthError({
+            'code': 'No Drinks',
+            'description': 'No drinks found - aborting 404')
+        }, 404)
 
     return jsonify({
         'success': True,
         'drinks': [drink.short() for drink in all_drinks]
-    })
-
+    }), 200
 
 
 '''
@@ -60,13 +61,15 @@ def get_drinks_detail(payload):
     all_drinks = Drink.query.order_by(Drink.id).all()
 
     if len(all_drinks) == 0:
-        print('No drinks found - aborting 404')
-        abort(404)
+                raise AuthError({
+            'code': 'No Drinks',
+            'description': 'No drinks found - aborting 404')
+        }, 404)
 
     return jsonify({
         'success': True,
         'drinks': [drink.long() for drink in all_drinks]
-    })
+    }), 200
 
 '''
 @TODO implement endpoint
